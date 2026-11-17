@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FAF9F6;
+  --foreground: #10233F;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-brand-green: #163524;
+  --color-brand-greenLight: #214732;
+  --color-brand-navy: #10233F;
+  --color-brand-gold: #DFC58B;
+  --color-brand-goldDark: #C9AD6E;
+  --color-brand-cream: #FAF9F6;
+  --color-brand-iceBlue: #D5E1EC;
+  --color-brand-iceLight: #E9EFF5;
+  --color-brand-muted: #5E6B7A;
+
+  --font-sans: var(--font-vazirmatn), system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-cormorant), Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FAF9F6;
+  color: #10233F;
+  font-family: var(--font-vazirmatn), system-ui, -apple-system, sans-serif;
+}
+
+.font-brand-en {
+  font-family: var(--font-cormorant), Georgia, serif;
+  letter-spacing: 0.08em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
