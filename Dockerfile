@@ -2,13 +2,11 @@
 # Stage 1: Dependencies
 # ---------------------------------------------------
 FROM node:20-alpine AS deps
-# Fix 1: Added --no-cache to keep layer size small
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-# Fix 2: Added cache mount so npm package tarballs are cached locally across builds
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
 
@@ -21,10 +19,18 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Receive build-time public URLs from docker-compose build.args
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-RUN npm run build
+# Persist Next.js incremental build cache across rebuilds
+RUN --mount=type=cache,target=/app/.next/cache \
+    npm run build
 
 # ---------------------------------------------------
 # Stage 3: Runner (Production Image)
@@ -37,18 +43,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Create non-root system user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy static public assets
 COPY --from=builder /app/public ./public
 
-# Set permissions for pre-rendered cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Automatically leverage output standalone bundle
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
