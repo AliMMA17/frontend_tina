@@ -5,10 +5,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ArrowRight, Loader2, Lock, LogIn, Mail } from "lucide-react";
-import { tokenStorage } from "@/lib/tokens";
+import {
+  AlertCircle,
+  ArrowRight,
+  Loader2,
+  Lock,
+  LogIn,
+  User,
+} from "lucide-react";
+import { isTokenExpired, tokenStorage } from "@/lib/tokens";
 import { loginSchema, type LoginInput } from "../schemas/auth.schema";
 import { login } from "../services/auth.service";
+import { handleAuthFormError } from "../utils/form-errors";
+
+const LOGIN_FIELDS: ReadonlyArray<keyof LoginInput> = ["username", "password"];
 
 export function LoginForm() {
   const router = useRouter();
@@ -17,6 +27,7 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -24,7 +35,8 @@ export function LoginForm() {
   });
 
   useEffect(() => {
-    if (tokenStorage.getAccessToken()) {
+    const accessToken = tokenStorage.getAccessToken();
+    if (accessToken && !isTokenExpired(accessToken)) {
       router.replace("/");
     }
   }, [router]);
@@ -36,9 +48,12 @@ export function LoginForm() {
       router.replace("/");
     } catch (err: unknown) {
       setApiError(
-        err instanceof Error
-          ? err.message
-          : "ورود ناموفق بود. لطفاً دوباره تلاش کنید."
+        handleAuthFormError(
+          err,
+          setError,
+          LOGIN_FIELDS,
+          "ورود ناموفق بود. لطفاً دوباره تلاش کنید."
+        )
       );
     }
   };
@@ -73,27 +88,27 @@ export function LoginForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-1.5">
           <label
-            htmlFor="email"
+            htmlFor="username"
             className="block text-xs font-semibold text-brand-navy"
           >
-            ایمیل
+            نام کاربری
           </label>
           <div className="flex items-center gap-2.5 rounded-2xl border border-gray-200 bg-white px-3.5 focus-within:border-brand-green transition-colors">
-            <Mail className="h-4 w-4 shrink-0 text-brand-muted" />
+            <User className="h-4 w-4 shrink-0 text-brand-muted" />
             <input
-              id="email"
-              type="email"
+              id="username"
+              type="text"
               dir="ltr"
-              autoComplete="email"
+              autoComplete="username"
               disabled={isSubmitting}
-              placeholder="name@example.com"
-              {...register("email")}
+              placeholder="username"
+              {...register("username")}
               className="w-full bg-transparent py-2.5 text-sm text-brand-navy placeholder:text-gray-400 outline-none disabled:opacity-50 text-left"
             />
           </div>
-          {errors.email && (
+          {errors.username && (
             <p className="text-xs font-medium text-rose-600">
-              {errors.email.message}
+              {errors.username.message}
             </p>
           )}
         </div>
@@ -141,7 +156,17 @@ export function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-6 border-t border-gray-200/80 pt-4 text-center">
+      <div className="mt-5 text-center text-xs text-brand-muted">
+        حساب کاربری ندارید؟{" "}
+        <Link
+          href="/register"
+          className="font-bold text-brand-green hover:underline underline-offset-4"
+        >
+          ثبت‌نام کنید
+        </Link>
+      </div>
+
+      <div className="mt-5 border-t border-gray-200/80 pt-4 text-center">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-muted transition-colors hover:text-brand-navy"

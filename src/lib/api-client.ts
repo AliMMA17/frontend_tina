@@ -1,84 +1,109 @@
 import { env } from "./env";
-import { tokenStorage } from "./tokens";
+import { isTokenExpired, tokenStorage } from "./tokens";
 
 export const API_BASE_URL = env.apiBaseUrl;
 
 let refreshPromise: Promise<string> | null = null;
 
+export interface FastApiValidationItem {
+  loc?: Array<string | number>;
+  msg?: string;
+  type?: string;
+}
+
 export class ApiError extends Error {
   status: number;
   detail?: unknown;
+  fieldErrors?: Record<string, string>;
 
-  constructor(message: string, status: number, detail?: unknown) {
+  constructor(
+    message: string,
+    status: number,
+    detail?: unknown,
+    fieldErrors?: Record<string, string>
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.detail = detail;
+    this.fieldErrors = fieldErrors;
+  }
+}
+
+function normalizePath(path: string): string {
+  return path.startsWith("/") ? path : `/${path}`;
+}
+
+function redirectToLogin(): void {
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.replace("/login");
   }
 }
 
 /**
- * Extracts a human-readable error message from a failed Fetch Response.
+ * Extracts human-readable error details and maps FastAPI 422 Pydantic
+ * validation errors (`detail: [{ loc, msg, type }]`) to form field names.
  */
 export async function parseApiError(
   response: Response,
-  fallbackMessage = "An unexpected error occurred."
+  fallbackMessage = "خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید."
 ): Promise<ApiError> {
   const errorData = await response.json().catch(() => ({}));
   const detail = errorData?.detail;
 
   let message = "";
+  let fieldErrors: Record<string, string> | undefined;
 
   if (typeof detail === "string" && detail.trim()) {
-    message = detail;
-  } else if (Array.isArray(detail) && typeof detail[0]?.msg === "string") {
-    message = detail[0].msg;
+    message = detail.trim();
+  } else if (Array.isArray(detail) && detail.length > 0) {
+    const mapped: Record<string, string> = {};
+    const messages: string[] = [];
+
+    for (const item of detail as FastApiValidationItem[]) {
+      const msg = typeof item?.msg === "string" ? item.msg.trim() : "";
+      if (!msg) continue;
+
+      messages.push(msg);
+
+      if (Array.isArray(item.loc) && item.loc.length > 0) {
+        const stringParts = item.loc
+          .map((part) => String(part))
+          .filter((part) => part !== "body" && part !== "query" && part !== "path");
+        const fieldName = stringParts[stringParts.length - 1];
+        if (fieldName && !mapped[fieldName]) {
+          mapped[fieldName] = msg;
+        }
+      }
+    }
+
+    if (Object.keys(mapped).length > 0) {
+      fieldErrors = mapped;
+    }
+    message = messages[0] || fallbackMessage;
   } else if (typeof errorData?.message === "string" && errorData.message.trim()) {
-    message = errorData.message;
+    message = errorData.message.trim();
   } else if (response.status === 401) {
-    message = "Your session has expired. Please sign in again.";
+    message = "نشست کاربری شما معتبر نیست یا منقضی شده است.";
   } else if (response.status === 403) {
-    message = "You do not have permission to perform this action.";
+    message = "شما دسترسی لازم برای انجام این عملیات را ندارید.";
   } else {
     message = fallbackMessage;
   }
 
-  return new ApiError(message, response.status, detail);
+  return new ApiError(message, response.status, detail, fieldErrors);
 }
 
 /**
- * Checks if a JWT token is expired (or will expire within the next 15 seconds).
- */
-function isTokenExpired(token: string | null): boolean {
-  if (!token) return true;
-  try {
-    const base64Url = token.split(".")[1];
-    if (!base64Url) return true;
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    const { exp } = JSON.parse(jsonPayload);
-    if (!exp) return false;
-    // Buffer by 15 seconds to prevent in-flight expiration
-    return Date.now() >= exp * 1000 - 15000;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Requests a new access token using the stored refresh token.
+ * Requests a new token pair using the stored refresh token.
  * Deduplicates concurrent refresh calls into a single in-flight request.
+ * Clears tokens and redirects to /login if refresh fails with 401.
  */
-async function requestNewToken(): Promise<string> {
+export async function requestNewAccessToken(): Promise<string> {
   const refreshToken = tokenStorage.getRefreshToken();
   if (!refreshToken) {
     tokenStorage.clearTokens();
-    throw new Error("No active session found. Please sign in again.");
+    throw new ApiError("نشست کاربری یافت نشد. لطفاً مجدداً وارد شوید.", 401);
   }
 
   if (refreshPromise) {
@@ -87,15 +112,12 @@ async function requestNewToken(): Promise<string> {
 
   refreshPromise = (async () => {
     try {
-      const refreshPath = env.authRefreshPath.startsWith("/")
-        ? env.authRefreshPath
-        : `/${env.authRefreshPath}`;
+      const refreshPath = normalizePath(env.authRefreshPath);
 
       const response = await fetch(`${API_BASE_URL}${refreshPath}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${refreshToken}`,
         },
         body: JSON.stringify({
           refresh_token: refreshToken,
@@ -103,21 +125,25 @@ async function requestNewToken(): Promise<string> {
       });
 
       if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        tokenStorage.clearTokens();
-        throw new Error(errData.message || "Your session has expired.");
+        const apiError = await parseApiError(
+          response,
+          "نشست کاربری شما منقضی شده است."
+        );
+        if (response.status === 401) {
+          tokenStorage.clearTokens();
+          redirectToLogin();
+        }
+        throw apiError;
       }
 
       const data = await response.json();
+      const newAccessToken: string | undefined = data.access_token;
+      const newRefreshToken: string | undefined = data.refresh_token;
 
-      const newAccessToken =
-        data.access_token || data.accessToken || data.token || data.data?.access_token;
-      const newRefreshToken =
-        data.refresh_token || data.refreshToken || data.data?.refresh_token || refreshToken;
-
-      if (!newAccessToken) {
+      if (!newAccessToken || !newRefreshToken) {
         tokenStorage.clearTokens();
-        throw new Error("Invalid token payload received from server.");
+        redirectToLogin();
+        throw new ApiError("ساختار توکن دریافتی از سرور معتبر نیست.", 500);
       }
 
       tokenStorage.setTokens(newAccessToken, newRefreshToken);
@@ -136,7 +162,7 @@ export interface ApiClientOptions extends RequestInit {
 
 /**
  * Fetch wrapper with automatic Bearer token injection, proactive JWT refresh,
- * and single-retry 401 token renewal.
+ * and single-retry 401 token renewal via POST /api/v1/auth/refresh.
  */
 export async function apiClient(
   endpoint: string,
@@ -146,11 +172,10 @@ export async function apiClient(
 
   const url = endpoint.startsWith("http")
     ? endpoint
-    : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+    : `${API_BASE_URL}${normalizePath(endpoint)}`;
 
   const headers = new Headers(customHeaders || {});
 
-  // Do not set Content-Type for FormData (the browser adds the multipart boundary)
   if (!headers.has("Content-Type") && !(restOptions.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
@@ -160,12 +185,12 @@ export async function apiClient(
   if (!skipAuth) {
     let accessToken = tokenStorage.getAccessToken();
 
-    // 1. Proactive refresh before sending an expired token
+    // 1. Proactive refresh if access token is expired and refresh token exists
     if (accessToken && isTokenExpired(accessToken) && tokenStorage.getRefreshToken()) {
       try {
-        accessToken = await requestNewToken();
-      } catch (err) {
-        console.warn("[Auth] Proactive refresh failed, proceeding with current token:", err);
+        accessToken = await requestNewAccessToken();
+      } catch {
+        accessToken = tokenStorage.getAccessToken();
       }
     }
 
@@ -177,29 +202,31 @@ export async function apiClient(
 
   let response = await fetch(url, { ...restOptions, headers });
 
-  // 2. Reactive refresh on 401 Unauthorized
+  // 2. Reactive refresh on 401 Unauthorized from protected endpoints
   const isAuthEndpoint =
-    url.includes(env.authRefreshPath) || url.includes(env.authLoginPath);
+    url.includes(normalizePath(env.authRefreshPath)) ||
+    url.includes(normalizePath(env.authLoginPath)) ||
+    url.includes(normalizePath(env.authRegisterPath));
 
-  if (response.status === 401 && !skipAuth && !isAuthEndpoint && tokenStorage.getRefreshToken()) {
+  if (
+    response.status === 401 &&
+    !skipAuth &&
+    !isAuthEndpoint &&
+    tokenStorage.getRefreshToken()
+  ) {
     try {
       const currentStoredToken = tokenStorage.getAccessToken();
-
-      let freshToken: string;
-      if (
+      const freshToken =
         currentStoredToken &&
         currentStoredToken !== tokenSent &&
         !isTokenExpired(currentStoredToken)
-      ) {
-        freshToken = currentStoredToken;
-      } else {
-        freshToken = await requestNewToken();
-      }
+          ? currentStoredToken
+          : await requestNewAccessToken();
 
       headers.set("Authorization", `Bearer ${freshToken}`);
       response = await fetch(url, { ...restOptions, headers });
-    } catch (error) {
-      console.error("[Auth] 401 retry failed:", error);
+    } catch {
+      // requestNewAccessToken already clears tokens & redirects on 401
     }
   }
 

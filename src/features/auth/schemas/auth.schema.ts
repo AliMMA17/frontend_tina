@@ -1,15 +1,61 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z
+  username: z
     .string()
     .trim()
-    .min(1, "وارد کردن ایمیل الزامی است")
-    .email("لطفاً یک ایمیل معتبر وارد کنید"),
+    .min(1, "وارد کردن نام کاربری الزامی است")
+    .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد"),
   password: z
     .string()
     .min(1, "وارد کردن رمز عبور الزامی است")
-    .min(6, "رمز عبور باید حداقل ۶ کاراکتر باشد"),
+    .max(128, "رمز عبور نباید بیشتر از ۱۲۸ کاراکتر باشد"),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const registerSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3, "نام کاربری باید حداقل ۳ کاراکتر باشد")
+    .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد"),
+  password: z
+    .string()
+    .min(8, "رمز عبور باید حداقل ۸ کاراکتر باشد")
+    .max(128, "رمز عبور نباید بیشتر از ۱۲۸ کاراکتر باشد"),
+  full_name: z
+    .string()
+    .trim()
+    .min(1, "وارد کردن نام و نام خانوادگی الزامی است")
+    .max(255, "نام و نام خانوادگی نباید بیشتر از ۲۵۵ کاراکتر باشد"),
+  phone_number: z
+    .string()
+    .trim()
+    .min(5, "شماره تماس باید حداقل ۵ کاراکتر باشد")
+    .max(32, "شماره تماس نباید بیشتر از ۳۲ کاراکتر باشد"),
+  full_address: z
+    .string()
+    .trim()
+    .min(1, "وارد کردن آدرس کامل الزامی است")
+    .max(1000, "آدرس نباید بیشتر از ۱۰۰۰ کاراکتر باشد"),
+  job: z
+    .string()
+    .trim()
+    .min(1, "وارد کردن شغل یا تخصص الزامی است")
+    .max(255, "شغل نباید بیشتر از ۲۵۵ کاراکتر باشد"),
+  work_page: z
+    .string()
+    .trim()
+    .max(500, "آدرس صفحه کاری نباید بیشتر از ۵۰۰ کاراکتر باشد")
+    .optional()
+    .or(z.literal("")),
+  income: z
+    .string()
+    .trim()
+    .max(255, "مقدار درآمد نباید بیشتر از ۲۵۵ کاراکتر باشد")
+    .optional()
+    .or(z.literal("")),
+});
+
+export type RegisterInput = z.infer<typeof registerSchema>;

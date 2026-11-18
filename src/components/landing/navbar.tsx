@@ -1,12 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, User, X } from "lucide-react";
+import {
+  ensureValidSession,
+  getSessionClaims,
+  logout,
+} from "@/features/auth/services/auth.service";
+import type { JwtClaims } from "@/features/auth/types/auth.types";
 import { NAV_LINKS } from "./constants";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<JwtClaims | null>(null);
+  const [checkedAuth, setCheckedAuth] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSession() {
+      const localClaims = getSessionClaims();
+      if (localClaims && active) {
+        setSession(localClaims);
+      }
+
+      try {
+        const validClaims = await ensureValidSession();
+        if (active) {
+          setSession(validClaims);
+        }
+      } catch {
+        if (active) {
+          setSession(null);
+        }
+      } finally {
+        if (active) {
+          setCheckedAuth(true);
+        }
+      }
+    }
+
+    loadSession();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setSession(null);
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-brand-cream/95 backdrop-blur-md border-b border-gray-200/70">
@@ -46,14 +91,39 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Auth Button & Mobile Toggle (Left in RTL) */}
+        {/* Auth Button / Active Session & Mobile Toggle (Left in RTL) */}
         <div className="flex items-center gap-2.5">
-          <Link
-            href="/login"
-            className="border border-brand-navy/30 hover:border-brand-navy text-brand-navy text-xs sm:text-sm font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition-colors whitespace-nowrap"
-          >
-            ورود / ثبت‌نام
-          </Link>
+          {checkedAuth && session ? (
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-green/20 bg-brand-green/5 px-3.5 py-1.5 text-xs font-semibold text-brand-navy">
+                <User className="h-3.5 w-3.5 text-brand-green shrink-0" />
+                <span className="max-w-[110px] truncate" dir="ltr">
+                  {session.username}
+                </span>
+                {session.role === "admin" && (
+                  <span className="rounded-full bg-brand-green px-2 py-0.5 text-[10px] font-bold text-brand-gold">
+                    مدیر
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="خروج از حساب"
+                className="inline-flex items-center gap-1 rounded-full border border-brand-navy/25 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 text-brand-navy text-xs font-medium px-3.5 py-2 transition-colors cursor-pointer"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">خروج</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="border border-brand-navy/30 hover:border-brand-navy text-brand-navy text-xs sm:text-sm font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition-colors whitespace-nowrap"
+            >
+              ورود / ثبت‌نام
+            </Link>
+          )}
 
           <button
             type="button"
