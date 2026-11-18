@@ -8,5 +8,6 @@ export const env = {
     process.env.NEXT_PUBLIC_AUTH_LOGIN_PATH || "/api/v1/auth/login",
   authRefreshPath:
     process.env.NEXT_PUBLIC_AUTH_REFRESH_PATH || "/api/v1/auth/refresh",
+  usersPath: process.env.NEXT_PUBLIC_USERS_PATH || "/api/v1/users",
   healthPath: process.env.NEXT_PUBLIC_HEALTH_PATH || "/health",
 } as const;

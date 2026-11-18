@@ -8,7 +8,7 @@ interface LoadingStateProps {
 }
 
 export function LoadingState({
-  label = "Loading...",
+  label = "در حال بارگذاری...",
   fullScreen = false,
   className,
 }: LoadingStateProps) {
@@ -17,12 +17,12 @@ export function LoadingState({
       role="status"
       aria-live="polite"
       className={cn(
-        "flex flex-col items-center justify-center gap-3 text-slate-500",
-        fullScreen ? "min-h-screen w-full" : "py-14 px-4",
+        "flex flex-col items-center justify-center gap-3 text-brand-muted",
+        fullScreen ? "min-h-screen w-full bg-brand-cream" : "py-14 px-4",
         className
       )}
     >
-      <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
+      <Loader2 className="h-7 w-7 animate-spin text-brand-green" />
       {label && <p className="text-sm font-medium">{label}</p>}
     </div>
   );

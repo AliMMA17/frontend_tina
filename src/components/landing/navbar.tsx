@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogOut, Menu, User, X } from "lucide-react";
+import { LogOut, Menu, ShieldCheck, User, X } from "lucide-react";
 import {
   ensureValidSession,
   getSessionClaims,
@@ -95,16 +95,20 @@ export function Navbar() {
         <div className="flex items-center gap-2.5">
           {checkedAuth && session ? (
             <div className="flex items-center gap-2">
+              {session.role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-brand-green px-3.5 py-2 text-xs font-bold text-brand-gold shadow-xs transition-colors hover:bg-brand-greenLight"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">پنل مدیریت</span>
+                </Link>
+              )}
               <div className="inline-flex items-center gap-2 rounded-full border border-brand-green/20 bg-brand-green/5 px-3.5 py-1.5 text-xs font-semibold text-brand-navy">
                 <User className="h-3.5 w-3.5 text-brand-green shrink-0" />
                 <span className="max-w-[110px] truncate" dir="ltr">
                   {session.username}
                 </span>
-                {session.role === "admin" && (
-                  <span className="rounded-full bg-brand-green px-2 py-0.5 text-[10px] font-bold text-brand-gold">
-                    مدیر
-                  </span>
-                )}
               </div>
               <button
                 type="button"
@@ -164,6 +168,18 @@ export function Navbar() {
                 )}
               </a>
             ))}
+            {checkedAuth && session?.role === "admin" && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between rounded-2xl bg-brand-green px-4 py-2.5 text-sm font-bold text-brand-gold"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>پنل مدیریت کاربران</span>
+                </span>
+              </Link>
+            )}
           </nav>
         </div>
       )}
