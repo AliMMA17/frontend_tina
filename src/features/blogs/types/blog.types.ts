@@ -46,3 +46,10 @@ export interface UpdateBlogPayload {
   cover_image_url?: string | null;
   is_published?: boolean;
 }
+
+export interface UploadedImageResponse {
+  filename: string;
+  url: string;
+  content_type: string;
+  size_bytes: number;
+}

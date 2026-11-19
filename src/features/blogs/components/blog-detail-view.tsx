@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Calendar, User as UserIcon } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
+import { normalizeBlogContentToHtml } from "@/features/blogs/utils/rich-content";
 import { formatDate } from "@/lib/utils";
 import { usePublishedBlog } from "../hooks/use-blogs";
 import { BlogCover } from "./blog-cover";
@@ -65,6 +66,9 @@ export function BlogDetailView({ slug }: BlogDetailViewProps) {
   }
 
   const displayDate = blog.published_at || blog.created_at;
+  const safeHtml = normalizeBlogContentToHtml(blog.content, {
+    resolveImages: true,
+  });
 
   return (
     <article className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -111,9 +115,10 @@ export function BlogDetailView({ slug }: BlogDetailViewProps) {
             </p>
           )}
 
-          <div className="mt-8 border-t border-gray-100 pt-8 text-sm leading-8 text-brand-navy/90 whitespace-pre-line sm:text-[15px]">
-            {blog.content}
-          </div>
+          <div
+            className="mt-8 border-t border-gray-100 pt-8 text-sm leading-8 text-brand-navy/90 sm:text-[15px] [&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:text-xl [&_h2]:font-extrabold [&_h2]:text-brand-navy [&_h3]:mt-5 [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-bold [&_h3]:text-brand-navy [&_p]:my-2.5 [&_strong]:font-extrabold [&_b]:font-extrabold [&_em]:italic [&_i]:italic [&_u]:underline [&_blockquote]:my-5 [&_blockquote]:border-r-4 [&_blockquote]:border-brand-gold [&_blockquote]:bg-brand-cream/70 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:rounded-l-xl [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pr-6 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pr-6 [&_li]:my-1 [&_a]:text-brand-green [&_a]:underline [&_a]:font-semibold [&_figure]:my-6 [&_figure]:overflow-hidden [&_figure]:rounded-2xl [&_figure]:border [&_figure]:border-gray-200/80 [&_figure]:bg-brand-cream/40 [&_img]:mx-auto [&_img]:max-h-[520px] [&_img]:w-full [&_img]:object-contain"
+            dangerouslySetInnerHTML={{ __html: safeHtml }}
+          />
         </div>
       </div>
     </article>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hasMeaningfulHtmlContent } from "../utils/rich-content";
 
 export const blogFormSchema = z.object({
   title: z
@@ -31,7 +32,11 @@ export const blogFormSchema = z.object({
         message: "آدرس تصویر باید با http://، https:// یا / شروع شود.",
       }
     ),
-  content: z.string().trim().min(1, "متن مقاله الزامی است."),
+  content: z
+    .string()
+    .refine((val) => hasMeaningfulHtmlContent(val), {
+      message: "متن مقاله الزامی است.",
+    }),
   is_published: z.boolean(),
 });
 

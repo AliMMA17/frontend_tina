@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { stripHtmlToText } from "../utils/rich-content";
 import { usePublishedBlogs } from "../hooks/use-blogs";
 import { BlogCover } from "./blog-cover";
 
@@ -118,7 +119,7 @@ export function BlogsListView() {
                     </Link>
 
                     <p className="mt-2.5 flex-1 text-xs leading-relaxed text-brand-muted line-clamp-3">
-                      {blog.summary || blog.content}
+                      {blog.summary || stripHtmlToText(blog.content)}
                     </p>
 
                     <div className="mt-5 border-t border-gray-100 pt-4">

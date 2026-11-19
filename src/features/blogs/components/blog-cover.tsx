@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
+import { resolveMediaUrl } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 interface BlogCoverProps {
@@ -11,17 +12,18 @@ interface BlogCoverProps {
 }
 
 export function BlogCover({ src, alt, className }: BlogCoverProps) {
+  const resolvedSrc = resolveMediaUrl(src);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const showImage = Boolean(src && failedSrc !== src);
+  const showImage = Boolean(resolvedSrc && failedSrc !== resolvedSrc);
 
-  if (showImage && src) {
+  if (showImage && resolvedSrc) {
     return (
       <div className={cn("relative overflow-hidden bg-brand-iceLight", className)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={src}
+          src={resolvedSrc}
           alt={alt}
-          onError={() => setFailedSrc(src)}
+          onError={() => setFailedSrc(resolvedSrc)}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>

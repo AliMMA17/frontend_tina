@@ -8,6 +8,7 @@ import type {
   ListBlogsParams,
   PaginatedBlogsResponse,
   UpdateBlogPayload,
+  UploadedImageResponse,
 } from "../types/blog.types";
 
 const DEFAULT_LIMIT = 12;
@@ -137,4 +138,23 @@ export async function deleteAdminBlog(blogId: string): Promise<void> {
     handleAdminUnauthorized(response.status);
     throw await parseApiError(response, "خطا در حذف مقاله.");
   }
+}
+
+export async function uploadBlogImage(
+  file: File
+): Promise<UploadedImageResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await apiClient(API_ENDPOINTS.uploadImage, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    handleAdminUnauthorized(response.status);
+    throw await parseApiError(response, "خطا در آپلود تصویر.");
+  }
+
+  return response.json();
 }
