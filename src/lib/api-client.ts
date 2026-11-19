@@ -1,4 +1,4 @@
-import { env } from "./env";
+import { API_ENDPOINTS, env } from "./env";
 import { isTokenExpired, tokenStorage } from "./tokens";
 
 export const API_BASE_URL = env.apiBaseUrl;
@@ -112,7 +112,7 @@ export async function requestNewAccessToken(): Promise<string> {
 
   refreshPromise = (async () => {
     try {
-      const refreshPath = normalizePath(env.authRefreshPath);
+      const refreshPath = normalizePath(API_ENDPOINTS.authRefresh);
 
       const response = await fetch(`${API_BASE_URL}${refreshPath}`, {
         method: "POST",
@@ -204,9 +204,9 @@ export async function apiClient(
 
   // 2. Reactive refresh on 401 Unauthorized from protected endpoints
   const isAuthEndpoint =
-    url.includes(normalizePath(env.authRefreshPath)) ||
-    url.includes(normalizePath(env.authLoginPath)) ||
-    url.includes(normalizePath(env.authRegisterPath));
+    url.includes(normalizePath(API_ENDPOINTS.authRefresh)) ||
+    url.includes(normalizePath(API_ENDPOINTS.authLogin)) ||
+    url.includes(normalizePath(API_ENDPOINTS.authRegister));
 
   if (
     response.status === 401 &&

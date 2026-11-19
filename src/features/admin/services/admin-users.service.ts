@@ -1,5 +1,5 @@
 import { apiClient, parseApiError } from "@/lib/api-client";
-import { env } from "@/lib/env";
+import { API_ENDPOINTS } from "@/lib/env";
 import { tokenStorage } from "@/lib/tokens";
 import type {
   ListUsersParams,
@@ -26,11 +26,7 @@ export async function listAdminUsers({
     limit: String(safeLimit),
   });
 
-  const basePath = env.usersPath.startsWith("/")
-    ? env.usersPath
-    : `/${env.usersPath}`;
-
-  const response = await apiClient(`${basePath}?${query.toString()}`, {
+  const response = await apiClient(`${API_ENDPOINTS.users}?${query.toString()}`, {
     method: "GET",
   });
 

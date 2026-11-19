@@ -1,5 +1,5 @@
 import { apiClient, parseApiError } from "@/lib/api-client";
-import { env } from "@/lib/env";
+import { API_ENDPOINTS } from "@/lib/env";
 import { decodeJwtPayload, isTokenExpired, tokenStorage } from "@/lib/tokens";
 import type {
   HealthResponse,
@@ -36,7 +36,7 @@ export async function registerUser(
         : String(payload.income).trim(),
   };
 
-  const response = await apiClient(env.authRegisterPath, {
+  const response = await apiClient(API_ENDPOINTS.authRegister, {
     method: "POST",
     skipAuth: true,
     body: JSON.stringify(normalizedPayload),
@@ -62,7 +62,7 @@ export async function registerUser(
  * and persists the returned access and refresh tokens.
  */
 export async function login(payload: LoginPayload): Promise<TokenPairResponse> {
-  const response = await apiClient(env.authLoginPath, {
+  const response = await apiClient(API_ENDPOINTS.authLogin, {
     method: "POST",
     skipAuth: true,
     body: JSON.stringify({
@@ -96,7 +96,7 @@ export async function refreshTokens(): Promise<TokenPairResponse> {
     throw new Error("توکن بازیابی نشست یافت نشد.");
   }
 
-  const response = await apiClient(env.authRefreshPath, {
+  const response = await apiClient(API_ENDPOINTS.authRefresh, {
     method: "POST",
     skipAuth: true,
     body: JSON.stringify({ refresh_token: refreshToken }),
@@ -118,10 +118,10 @@ export async function refreshTokens(): Promise<TokenPairResponse> {
 }
 
 /**
- * Checks service availability via GET /health.
+ * Checks service availability via GET /api/v1/health.
  */
 export async function checkHealth(): Promise<HealthResponse> {
-  const response = await apiClient(env.healthPath, {
+  const response = await apiClient(API_ENDPOINTS.health, {
     method: "GET",
     skipAuth: true,
   });
