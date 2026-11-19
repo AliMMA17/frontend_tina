@@ -19,6 +19,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { isTokenExpired, tokenStorage } from "@/lib/tokens";
+import { toEnglishDigits } from "@/lib/utils";
 import { registerSchema, type RegisterInput } from "../schemas/auth.schema";
 import { registerUser } from "../services/auth.service";
 import { handleAuthFormError } from "../utils/form-errors";
@@ -126,8 +127,12 @@ export function RegisterForm() {
                 dir="ltr"
                 autoComplete="username"
                 disabled={isSubmitting}
-                placeholder="min 3 chars"
-                {...register("username")}
+                placeholder="min 3 chars (no spaces)"
+                {...register("username", {
+                  onChange: (e) => {
+                    e.target.value = e.target.value.replace(/\s+/g, "");
+                  },
+                })}
                 className="w-full bg-transparent py-2.5 text-sm text-brand-navy placeholder:text-gray-400 outline-none disabled:opacity-50 text-left"
               />
             </div>
@@ -206,11 +211,19 @@ export function RegisterForm() {
               <input
                 id="phone_number"
                 type="tel"
+                inputMode="tel"
                 dir="ltr"
                 autoComplete="tel"
                 disabled={isSubmitting}
                 placeholder="09123456789"
-                {...register("phone_number")}
+                {...register("phone_number", {
+                  onChange: (e) => {
+                    e.target.value = toEnglishDigits(e.target.value).replace(
+                      /\s+/g,
+                      ""
+                    );
+                  },
+                })}
                 className="w-full bg-transparent py-2.5 text-sm text-brand-navy placeholder:text-gray-400 outline-none disabled:opacity-50 text-left font-mono"
               />
             </div>

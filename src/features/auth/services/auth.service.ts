@@ -1,6 +1,7 @@
 import { apiClient, parseApiError } from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/lib/env";
 import { decodeJwtPayload, isTokenExpired, tokenStorage } from "@/lib/tokens";
+import { toEnglishDigits } from "@/lib/utils";
 import type {
   HealthResponse,
   JwtClaims,
@@ -21,7 +22,7 @@ export async function registerUser(
     username: payload.username.trim(),
     password: payload.password,
     full_name: payload.full_name.trim(),
-    phone_number: payload.phone_number.trim(),
+    phone_number: toEnglishDigits(payload.phone_number).replace(/\s+/g, ""),
     full_address: payload.full_address.trim(),
     job: payload.job.trim(),
     work_page:

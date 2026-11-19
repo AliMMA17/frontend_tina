@@ -19,6 +19,19 @@ export function formatNumber(
 }
 
 /**
+ * Converts Persian (۰-۹) and Arabic-Indic (٠-٩) digits to ASCII English digits (0-9).
+ */
+export function toEnglishDigits(value: string): string {
+  return value
+    .replace(/[\u06F0-\u06F9]/g, (char) =>
+      String.fromCharCode(char.charCodeAt(0) - 0x06f0 + 48)
+    )
+    .replace(/[\u0660-\u0669]/g, (char) =>
+      String.fromCharCode(char.charCodeAt(0) - 0x0660 + 48)
+    );
+}
+
+/**
  * Formats an ISO string or Date instance for display.
  */
 export function formatDate(

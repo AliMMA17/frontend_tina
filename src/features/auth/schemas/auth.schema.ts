@@ -1,11 +1,14 @@
 import { z } from "zod";
 
+const NO_WHITESPACE_RE = /^\S+$/;
+const ENGLISH_PHONE_RE = /^\+?[0-9]{5,20}$/;
+
 export const loginSchema = z.object({
   username: z
     .string()
-    .trim()
     .min(1, "وارد کردن نام کاربری الزامی است")
-    .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد"),
+    .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد")
+    .regex(NO_WHITESPACE_RE, "نام کاربری نباید شامل فاصله (Space) باشد"),
   password: z
     .string()
     .min(1, "وارد کردن رمز عبور الزامی است")
@@ -17,9 +20,9 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const registerSchema = z.object({
   username: z
     .string()
-    .trim()
     .min(3, "نام کاربری باید حداقل ۳ کاراکتر باشد")
-    .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد"),
+    .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد")
+    .regex(NO_WHITESPACE_RE, "نام کاربری نباید شامل فاصله (Space) باشد"),
   password: z
     .string()
     .min(8, "رمز عبور باید حداقل ۸ کاراکتر باشد")
@@ -32,8 +35,12 @@ export const registerSchema = z.object({
   phone_number: z
     .string()
     .trim()
-    .min(5, "شماره تماس باید حداقل ۵ کاراکتر باشد")
-    .max(32, "شماره تماس نباید بیشتر از ۳۲ کاراکتر باشد"),
+    .min(5, "شماره تماس باید حداقل ۵ رقم باشد")
+    .max(20, "شماره تماس نباید بیشتر از ۲۰ رقم باشد")
+    .regex(
+      ENGLISH_PHONE_RE,
+      "شماره تماس باید فقط با اعداد انگلیسی (0-9) وارد شود"
+    ),
   full_address: z
     .string()
     .trim()
