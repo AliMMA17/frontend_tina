@@ -127,10 +127,13 @@ export function RegisterForm() {
                 dir="ltr"
                 autoComplete="username"
                 disabled={isSubmitting}
-                placeholder="min 3 chars (no spaces)"
+                placeholder="english only (e.g. ali_7)"
                 {...register("username", {
                   onChange: (e) => {
-                    e.target.value = e.target.value.replace(/\s+/g, "");
+                    e.target.value = toEnglishDigits(e.target.value).replace(
+                      /\s+/g,
+                      ""
+                    );
                   },
                 })}
                 className="w-full bg-transparent py-2.5 text-sm text-brand-navy placeholder:text-gray-400 outline-none disabled:opacity-50 text-left"

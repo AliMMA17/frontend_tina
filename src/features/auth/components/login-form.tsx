@@ -14,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import { isTokenExpired, tokenStorage } from "@/lib/tokens";
+import { toEnglishDigits } from "@/lib/utils";
 import { loginSchema, type LoginInput } from "../schemas/auth.schema";
 import { login } from "../services/auth.service";
 import { handleAuthFormError } from "../utils/form-errors";
@@ -104,7 +105,10 @@ export function LoginForm() {
               placeholder="username"
               {...register("username", {
                 onChange: (e) => {
-                  e.target.value = e.target.value.replace(/\s+/g, "");
+                  e.target.value = toEnglishDigits(e.target.value).replace(
+                    /\s+/g,
+                    ""
+                  );
                 },
               })}
               className="w-full bg-transparent py-2.5 text-sm text-brand-navy placeholder:text-gray-400 outline-none disabled:opacity-50 text-left"

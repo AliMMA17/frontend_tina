@@ -88,7 +88,13 @@ export function Footer() {
 
         {/* Bottom Copyright */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-400 gap-4">
-          <p>© تمام حقوق برای تینا فلاح محفوظ است.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+            <p>© تمام حقوق برای تینا فلاح محفوظ است.</p>
+            <span className="hidden sm:inline text-white/20" aria-hidden="true">
+              |
+            </span>
+            <p>توسعه دهنده : علی رشچی</p>
+          </div>
           <div className="flex items-center gap-6">
             <a
               href={BRAND_INSTAGRAM_URL}

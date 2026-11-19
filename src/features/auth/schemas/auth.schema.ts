@@ -1,14 +1,17 @@
 import { z } from "zod";
 
-const NO_WHITESPACE_RE = /^\S+$/;
+const ENGLISH_USERNAME_RE = /^[A-Za-z0-9_.-]+$/;
 const ENGLISH_PHONE_RE = /^\+?[0-9]{5,20}$/;
+
+const USERNAME_ERROR_MSG =
+  "نام کاربری باید فقط شامل حروف انگلیسی، اعداد و _ . - باشد (بدون فاصله)";
 
 export const loginSchema = z.object({
   username: z
     .string()
     .min(1, "وارد کردن نام کاربری الزامی است")
     .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد")
-    .regex(NO_WHITESPACE_RE, "نام کاربری نباید شامل فاصله (Space) باشد"),
+    .regex(ENGLISH_USERNAME_RE, USERNAME_ERROR_MSG),
   password: z
     .string()
     .min(1, "وارد کردن رمز عبور الزامی است")
@@ -22,7 +25,7 @@ export const registerSchema = z.object({
     .string()
     .min(3, "نام کاربری باید حداقل ۳ کاراکتر باشد")
     .max(150, "نام کاربری نباید بیشتر از ۱۵۰ کاراکتر باشد")
-    .regex(NO_WHITESPACE_RE, "نام کاربری نباید شامل فاصله (Space) باشد"),
+    .regex(ENGLISH_USERNAME_RE, USERNAME_ERROR_MSG),
   password: z
     .string()
     .min(8, "رمز عبور باید حداقل ۸ کاراکتر باشد")
