@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LogOut, Menu, ShieldCheck, User, X } from "lucide-react";
 import {
   ensureValidSession,
@@ -15,6 +16,17 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [session, setSession] = useState<JwtClaims | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const pathname = usePathname();
+
+  const isNavItemActive = (href: string, defaultActive?: boolean) => {
+    if (href === "/blogs") {
+      return pathname === "/blogs" || pathname.startsWith("/blogs/");
+    }
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return Boolean(defaultActive) && pathname === "/";
+  };
 
   useEffect(() => {
     let active = true;
@@ -71,24 +83,27 @@ export function Navbar() {
           aria-label="منوی اصلی"
           className="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-brand-navy"
         >
-          {NAV_LINKS.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`inline-flex items-center gap-1.5 transition-colors ${
-                item.isActive
-                  ? "text-brand-green font-bold"
-                  : "hover:text-brand-green"
-              }`}
-            >
-              <span>{item.label}</span>
-              {item.comingSoon && (
-                <span className="rounded-full bg-brand-iceLight px-2 py-0.5 text-[10px] font-semibold text-brand-muted border border-brand-iceBlue">
-                  به زودی
-                </span>
-              )}
-            </a>
-          ))}
+          {NAV_LINKS.map((item) => {
+            const active = isNavItemActive(item.href, item.isActive);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`inline-flex items-center gap-1.5 transition-colors ${
+                  active
+                    ? "text-brand-green font-bold"
+                    : "hover:text-brand-green"
+                }`}
+              >
+                <span>{item.label}</span>
+                {item.comingSoon && (
+                  <span className="rounded-full bg-brand-iceLight px-2 py-0.5 text-[10px] font-semibold text-brand-muted border border-brand-iceBlue">
+                    به زودی
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Auth Button / Active Session & Mobile Toggle (Left in RTL) */}
@@ -149,25 +164,28 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200/70 bg-brand-cream px-4 py-4">
           <nav aria-label="منوی موبایل" className="flex flex-col gap-1.5">
-            {NAV_LINKS.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-medium transition-colors ${
-                  item.isActive
-                    ? "bg-brand-green/10 text-brand-green font-bold"
-                    : "text-brand-navy hover:bg-brand-iceLight"
-                }`}
-              >
-                <span>{item.label}</span>
-                {item.comingSoon && (
-                  <span className="rounded-full bg-brand-iceLight px-2.5 py-0.5 text-[10px] font-semibold text-brand-muted border border-brand-iceBlue">
-                    به زودی
-                  </span>
-                )}
-              </a>
-            ))}
+            {NAV_LINKS.map((item) => {
+              const active = isNavItemActive(item.href, item.isActive);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-brand-green/10 text-brand-green font-bold"
+                      : "text-brand-navy hover:bg-brand-iceLight"
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  {item.comingSoon && (
+                    <span className="rounded-full bg-brand-iceLight px-2.5 py-0.5 text-[10px] font-semibold text-brand-muted border border-brand-iceBlue">
+                      به زودی
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
             {checkedAuth && session?.role === "admin" && (
               <Link
                 href="/admin"

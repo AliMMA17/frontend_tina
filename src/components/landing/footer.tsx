@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BRAND_INSTAGRAM_HANDLE, BRAND_INSTAGRAM_URL } from "./constants";
 
 export function Footer() {
@@ -34,31 +35,28 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-xs text-gray-300">
               <li>
-                <a
-                  href="#featured-course"
+                <Link
+                  href="/#featured-course"
                   className="hover:text-white transition-colors"
                 >
                   دوره SKIN CLUB
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#courses"
+                <Link
+                  href="/#courses"
                   className="hover:text-white transition-colors"
                 >
                   همه دوره‌ها
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#magazine"
-                  className="hover:text-white transition-colors inline-flex items-center gap-1.5"
+                <Link
+                  href="/blogs"
+                  className="hover:text-white transition-colors"
                 >
-                  <span>مجله پوست</span>
-                  <span className="text-[10px] text-brand-gold/80">
-                    (به زودی)
-                  </span>
-                </a>
+                  وبلاگ و مقالات
+                </Link>
               </li>
             </ul>
           </div>
@@ -70,19 +68,19 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-xs text-gray-300">
               <li>
-                <a href="#shop" className="hover:text-white transition-colors">
+                <Link href="/#shop" className="hover:text-white transition-colors">
                   محصولات پوستی
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#shop" className="hover:text-white transition-colors">
+                <Link href="/#shop" className="hover:text-white transition-colors">
                   دستگاه‌های هوم‌کر
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#shop" className="hover:text-white transition-colors">
+                <Link href="/#shop" className="hover:text-white transition-colors">
                   دستگاه‌های کابین
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

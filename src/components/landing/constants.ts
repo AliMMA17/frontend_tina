@@ -9,12 +9,12 @@ export interface NavLinkItem {
 }
 
 export const NAV_LINKS: NavLinkItem[] = [
-  { href: "#top", label: "خانه", isActive: true },
-  { href: "#courses", label: "دوره‌های آموزشی" },
-  { href: "#magazine", label: "مجله پوست", comingSoon: true },
-  { href: "#shop", label: "فروشگاه", comingSoon: true },
-  { href: "#about", label: "درباره من" },
-  { href: "#footer", label: "تماس" },
+  { href: "/", label: "خانه", isActive: true },
+  { href: "/#courses", label: "دوره‌های آموزشی" },
+  { href: "/blogs", label: "وبلاگ" },
+  { href: "/#shop", label: "فروشگاه", comingSoon: true },
+  { href: "/#about", label: "درباره من" },
+  { href: "/#footer", label: "تماس" },
 ];
 
 export const HERO_PACK_ITEMS = [

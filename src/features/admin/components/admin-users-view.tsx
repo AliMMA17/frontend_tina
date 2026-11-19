@@ -2,31 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
   Eye,
-  LogOut,
   RefreshCw,
   ShieldAlert,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
-import { getSessionClaims, logout } from "@/features/auth/services/auth.service";
 import type { AuthUser } from "@/features/auth/types/auth.types";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { PAGE_SIZE_OPTIONS, useAdminUsers } from "../hooks/use-admin-users";
 import { UserDetailModal } from "./user-detail-modal";
 
-export function AdminUsersView() {
-  const router = useRouter();
+export function AdminUsersSection() {
   const [selectedUser, setSelectedUser] = useState<AuthUser | null>(null);
-  const claims = getSessionClaims();
 
   const {
     items,
@@ -43,69 +37,13 @@ export function AdminUsersView() {
     refetch,
   } = useAdminUsers(50);
 
-  const handleLogout = () => {
-    logout();
-    router.replace("/login");
-  };
-
   const rangeStart = total === 0 ? 0 : offset + 1;
   const rangeEnd = Math.min(offset + items.length, total);
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-navy">
-      {/* Top Admin Header */}
-      <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-brand-navy text-white">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green text-brand-gold border border-brand-gold/30">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-brand-en text-lg font-bold text-brand-gold">
-                  Tina Fallah
-                </span>
-                <span className="text-xs text-gray-300">| پنل مدیریت</span>
-              </div>
-              <p className="text-[11px] text-gray-300">
-                مدیریت کاربران ثبت‌نام‌شده
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            {claims?.username && (
-              <span
-                className="hidden sm:inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 font-mono text-xs text-brand-gold"
-                dir="ltr"
-              >
-                @{claims.username}
-              </span>
-            )}
-
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/10"
-            >
-              <ArrowRight className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">مشاهده سایت</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-rose-500/20 hover:text-rose-200 cursor-pointer"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">خروج</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        {/* Page Banner & Controls */}
-        <section className="flex flex-col gap-4 rounded-3xl border border-gray-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6">
+      {/* Page Banner & Controls */}
+      <section className="flex flex-col gap-4 rounded-3xl border border-gray-200/80 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-iceLight text-brand-navy">
               <Users className="h-6 w-6" />
@@ -337,7 +275,6 @@ export function AdminUsersView() {
             </div>
           </section>
         )}
-      </main>
 
       <UserDetailModal
         user={selectedUser}
